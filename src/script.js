@@ -4,6 +4,7 @@ import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 import * as dat from 'dat.gui'
+import gsap from "gsap";
 
 /**
  * Base
@@ -20,20 +21,22 @@ scene.background = new THREE.Texture()
 //Textures
 const textureLoader = new THREE.TextureLoader()
 const mtcTexture = textureLoader.load('/models/textures/softRed.png')
-const textTexture = textureLoader.load( "/models/textures/pinkSoft.png" );
+const textTexture = textureLoader.load( "/models/textures/lightPink.png" );
 
 //Text
+let text;
 const fontLoader = new THREE.FontLoader()
 fontLoader.load(
-    'fonts/Alegreya_Sans_Regular.json',
+    'fonts/Alegreya_Sans_Bold.json',
     (font)=>{
-        const textGeometry = new THREE.TextGeometry(
-            `RASPERRY PIE`,
+       const textGeometry = new THREE.TextGeometry(
+            `RASPBERRY
+            PIE`,
             {
                 font: font,
                 size: 2,
-                height: 0.2,
-                curveSegments: 5,
+                height: 0.7,
+                curveSegments: 7,
                 bevelEnabled: true,
                 bevelThickness: 0.05,
                 bevelSize: 0.02,
@@ -44,11 +47,12 @@ fontLoader.load(
         textGeometry.center()
         const textMaterial =  new THREE.MeshMatcapMaterial()
         textMaterial.matcap = textTexture
-        const text = new THREE.Mesh(textGeometry, textMaterial)
+        text = new THREE.Mesh(textGeometry, textMaterial)
         scene.add(text)
+        console.log("--->", text)
     }
 )
-
+ console.log(text)
 /**
  * Models
  */
@@ -73,20 +77,23 @@ let mixer = null
         berryMaker(berryMesh)
     }
 )
+const berryGroup = new THREE.Group();
+let oneBerry = false;
 
 const berryMaker = (berryMesh) => {
-    for(let i = 0; i<100; i++){
-        const oneBerry= berryMesh.clone()
+    for(let i = 0; i<200; i++){
+        oneBerry = new THREE.Mesh();
+        oneBerry= berryMesh.clone()
         oneBerry.position.x = (Math.random() - 0.5) * 19
         oneBerry.position.y = (Math.random() - 0.5) * 15
-        oneBerry.position.z = (Math.random() - 0.5) * 7 // -0.5 to putt berries on positive and negative side of axes
-       // oneBerry.position.normalize() puts berries to one big berry
-        scene.add(berryMesh, oneBerry)
+        oneBerry.position.z = (Math.random() - 0.5) * 20 // -0.5 to putt berries on positive and negative side of axes
+       berryGroup.add(berryMesh, oneBerry)
+        
     }
-
 }
-const axesHelper = new THREE.AxesHelper(5)
-scene.add(axesHelper)
+
+scene.add(berryGroup)
+//gsap.to(berryGroup.position.y, {rotation:"360", ease:Linear.easeNone, repeat:-1})
 
 /**
  * Lights
@@ -161,7 +168,8 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 /**
  * Animate
  */
-const clock = new THREE.Clock()
+console.log("berryGroup", berryGroup)
+const clock = new THREE.Clock() //starts at 0
 let previousTime = 0
 
 const tick = () =>
@@ -174,8 +182,10 @@ const tick = () =>
     {
         mixer.update(deltaTime)
     }
+    // Update objects
+    berryGroup.children.map(item=> item.rotation.y = elapsedTime*0.1 )
 
-    // // Update controls
+    // Update controls
     controls.update()
 
     // Render
