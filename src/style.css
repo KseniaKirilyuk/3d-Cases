@@ -7,6 +7,7 @@
 html,
 body
 {
+
     overflow: hidden;
 }
 
@@ -16,4 +17,9 @@ body
     top: 0;
     left: 0;
     outline: none;
+     background-color: #f2f4f3;
+    opacity: 1;
+    background-image:  radial-gradient(#e12150 1.9500000000000002px, transparent 1.9500000000000002px), radial-gradient(#e12150 1.9500000000000002px, #f2f4f3 1.9500000000000002px);
+    background-size: 78px 78px;
+    background-position: 0 0,39px 39px; 
 }

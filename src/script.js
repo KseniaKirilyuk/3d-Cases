@@ -1,6 +1,6 @@
 import './style.css'
 import * as THREE from 'three'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 import * as dat from 'dat.gui'
@@ -13,9 +13,41 @@ const gui = new dat.GUI()
 
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
-
 // Scene
 const scene = new THREE.Scene()
+scene.background = new THREE.Texture()
+
+//Textures
+const textureLoader = new THREE.TextureLoader()
+const mtcTexture = textureLoader.load('/models/textures/softRed.png')
+const textTexture = textureLoader.load( "/models/textures/pinkSoft.png" );
+
+//Text
+const fontLoader = new THREE.FontLoader()
+fontLoader.load(
+    'fonts/Alegreya_Sans_Regular.json',
+    (font)=>{
+        const textGeometry = new THREE.TextGeometry(
+            `RASPERRY PIE`,
+            {
+                font: font,
+                size: 2,
+                height: 0.2,
+                curveSegments: 5,
+                bevelEnabled: true,
+                bevelThickness: 0.05,
+                bevelSize: 0.02,
+                bevelOffset: 0,
+                bevelSegments: 4
+            }
+        )
+        textGeometry.center()
+        const textMaterial =  new THREE.MeshMatcapMaterial()
+        textMaterial.matcap = textTexture
+        const text = new THREE.Mesh(textGeometry, textMaterial)
+        scene.add(text)
+    }
+)
 
 /**
  * Models
@@ -24,49 +56,48 @@ const dracoLoader = new DRACOLoader()
 dracoLoader.setDecoderPath('/draco/')
 
 const gltfLoader = new GLTFLoader()
-gltfLoader.setDRACOLoader(dracoLoader)
+gltfLoader.setDRACOLoader(dracoLoader) // draco is not applied because the file doesn't require draco compression
 
 let mixer = null
-
-gltfLoader.load(
-    '/models/hamburger.glb',
-    (gltf) =>
+ gltfLoader.load(
+    '/models/raspberryblend.glb',
+    (glb) =>
     {
-        scene.add(gltf.scene)
+       const berryMesh = glb.scene
+       console.log(glb.scene.scale)
+        berryMesh.children.map(item=>{
+            item.rotateOnAxis.y = 0.5
+            item.material = new THREE.MeshMatcapMaterial()
+            item.material.matcap = mtcTexture
+        })
+        berryMaker(berryMesh)
     }
 )
 
-/**
- * Floor
- */
-const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(50, 50),
-    new THREE.MeshStandardMaterial({
-        color: '#444444',
-        metalness: 0,
-        roughness: 0.5
-    })
-)
-floor.receiveShadow = true
-floor.rotation.x = - Math.PI * 0.5
-scene.add(floor)
+const berryMaker = (berryMesh) => {
+    for(let i = 0; i<100; i++){
+        const oneBerry= berryMesh.clone()
+        oneBerry.position.x = (Math.random() - 0.5) * 19
+        oneBerry.position.y = (Math.random() - 0.5) * 15
+        oneBerry.position.z = (Math.random() - 0.5) * 7 // -0.5 to putt berries on positive and negative side of axes
+       // oneBerry.position.normalize() puts berries to one big berry
+        scene.add(berryMesh, oneBerry)
+    }
+
+}
+const axesHelper = new THREE.AxesHelper(5)
+scene.add(axesHelper)
 
 /**
  * Lights
  */
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.8)
-scene.add(ambientLight)
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6)
-directionalLight.castShadow = true
-directionalLight.shadow.mapSize.set(1024, 1024)
-directionalLight.shadow.camera.far = 15
-directionalLight.shadow.camera.left = - 7
-directionalLight.shadow.camera.top = 7
-directionalLight.shadow.camera.right = 7
-directionalLight.shadow.camera.bottom = - 7
-directionalLight.position.set(5, 5, 5)
-scene.add(directionalLight)
+const ambientLight = new THREE.AmbientLight();
+scene.add(ambientLight);
+
+const light = new THREE.PointLight(0xffffff, 0.55);
+light.position.set(150, 150, 150);
+scene.add(light);
 
 /**
  * Sizes
@@ -95,8 +126,8 @@ window.addEventListener('resize', () =>
  * Camera
  */
 // Base camera
-const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
-camera.position.set(- 8, 4, 8)
+const camera = new THREE.PerspectiveCamera(60, sizes.width/sizes.height, .1, 50)
+camera.position.z = 10
 scene.add(camera)
 
 // Controls
@@ -104,11 +135,23 @@ const controls = new OrbitControls(camera, canvas)
 controls.target.set(0, 1, 0)
 controls.enableDamping = true
 
+// Cursor
+const cursor = {
+    x: 0,
+    y: 0
+}
+canvas.addEventListener('mousemove', (event) =>
+{
+    cursor.x = event.clientX / sizes.width - 0.5 // range from -.5 to .5
+    cursor.y = event.clientY / sizes.height - 0.5
+})
+
 /**
  * Renderer
  */
 const renderer = new THREE.WebGLRenderer({
-    canvas: canvas
+    canvas: canvas,
+    alpha: true,
 })
 renderer.shadowMap.enabled = true
 renderer.shadowMap.type = THREE.PCFSoftShadowMap
@@ -132,7 +175,7 @@ const tick = () =>
         mixer.update(deltaTime)
     }
 
-    // Update controls
+    // // Update controls
     controls.update()
 
     // Render
