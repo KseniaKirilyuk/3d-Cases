@@ -4,7 +4,7 @@ import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 import * as dat from 'dat.gui'
-import gsap from "gsap";
+
 
 /**
  * Base
@@ -21,17 +21,16 @@ scene.background = new THREE.Texture()
 //Textures
 const textureLoader = new THREE.TextureLoader()
 const mtcTexture = textureLoader.load('/models/textures/softRed.png')
-const textTexture = textureLoader.load( "/models/textures/lightPink.png" );
+const textTexture = textureLoader.load( "/models/textures/chalk.png" );
 
 //Text
 let text;
 const fontLoader = new THREE.FontLoader()
 fontLoader.load(
-    'fonts/Alegreya_Sans_Bold.json',
+    'fonts/Fredoka _One_Regular.json',
     (font)=>{
        const textGeometry = new THREE.TextGeometry(
-            `RASPBERRY
-            PIE`,
+            "RASPBERRY",
             {
                 font: font,
                 size: 2,
@@ -41,7 +40,7 @@ fontLoader.load(
                 bevelThickness: 0.05,
                 bevelSize: 0.02,
                 bevelOffset: 0,
-                bevelSegments: 4
+                bevelSegments: 2
             }
         )
         textGeometry.center()
@@ -49,10 +48,10 @@ fontLoader.load(
         textMaterial.matcap = textTexture
         text = new THREE.Mesh(textGeometry, textMaterial)
         scene.add(text)
-        console.log("--->", text)
     }
 )
- console.log(text)
+const axesHelper = new THREE.AxesHelper( 5 );
+scene.add( axesHelper );
 /**
  * Models
  */
@@ -68,9 +67,7 @@ let mixer = null
     (glb) =>
     {
        const berryMesh = glb.scene
-       console.log(glb.scene.scale)
         berryMesh.children.map(item=>{
-            item.rotateOnAxis.y = 0.5
             item.material = new THREE.MeshMatcapMaterial()
             item.material.matcap = mtcTexture
         })
@@ -79,21 +76,25 @@ let mixer = null
 )
 const berryGroup = new THREE.Group();
 let oneBerry = false;
-
 const berryMaker = (berryMesh) => {
-    for(let i = 0; i<200; i++){
+    for(let i = 0; i<100; i++){
         oneBerry = new THREE.Mesh();
         oneBerry= berryMesh.clone()
+        //oneBerry.rotation.y(180)
         oneBerry.position.x = (Math.random() - 0.5) * 19
         oneBerry.position.y = (Math.random() - 0.5) * 15
-        oneBerry.position.z = (Math.random() - 0.5) * 20 // -0.5 to putt berries on positive and negative side of axes
+        oneBerry.position.z = (Math.random() - 0.5) * 20 // -0.5 to put berries on positive and negative side of axes
+        oneBerry.rotation.x = Math.random()
+        oneBerry.rotation.z = Math.random()
+        oneBerry.rotation.y = Math.random()
+        //oneBerry.rotate.y=360
        berryGroup.add(berryMesh, oneBerry)
         
     }
 }
 
 scene.add(berryGroup)
-//gsap.to(berryGroup.position.y, {rotation:"360", ease:Linear.easeNone, repeat:-1})
+
 
 /**
  * Lights
@@ -139,19 +140,8 @@ scene.add(camera)
 
 // Controls
 const controls = new OrbitControls(camera, canvas)
-controls.target.set(0, 1, 0)
+controls.target.set(0, 0, 0)
 controls.enableDamping = true
-
-// Cursor
-const cursor = {
-    x: 0,
-    y: 0
-}
-canvas.addEventListener('mousemove', (event) =>
-{
-    cursor.x = event.clientX / sizes.width - 0.5 // range from -.5 to .5
-    cursor.y = event.clientY / sizes.height - 0.5
-})
 
 /**
  * Renderer
@@ -160,15 +150,14 @@ const renderer = new THREE.WebGLRenderer({
     canvas: canvas,
     alpha: true,
 })
-renderer.shadowMap.enabled = true
-renderer.shadowMap.type = THREE.PCFSoftShadowMap
+// renderer.shadowMap.enabled = true //?
+// renderer.shadowMap.type = THREE.PCFSoftShadowMap//?
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
 /**
  * Animate
  */
-console.log("berryGroup", berryGroup)
 const clock = new THREE.Clock() //starts at 0
 let previousTime = 0
 
