@@ -20,8 +20,9 @@ scene.background = new THREE.Texture()
 
 //Textures
 const textureLoader = new THREE.TextureLoader()
-const mtcTexture = textureLoader.load('/models/textures/softRed.png')
+const berryTexture = textureLoader.load('/models/textures/softRed.png');
 const textTexture = textureLoader.load( "/models/textures/chalk.png" );
+const leavesTexture = textureLoader.load( "/models/textures/lightGreen.png" );
 
 //Text
 let text;
@@ -50,8 +51,8 @@ fontLoader.load(
         scene.add(text)
     }
 )
-const axesHelper = new THREE.AxesHelper( 5 );
-scene.add( axesHelper );
+// const axesHelper = new THREE.AxesHelper( 5 );
+// scene.add( axesHelper );
 /**
  * Models
  */
@@ -59,26 +60,56 @@ const dracoLoader = new DRACOLoader()
 dracoLoader.setDecoderPath('/draco/')
 
 const gltfLoader = new GLTFLoader()
-gltfLoader.setDRACOLoader(dracoLoader) // draco is not applied because the file doesn't require draco compression
+gltfLoader.setDRACOLoader(dracoLoader) 
+console.log("DRACO",dracoLoader)
 
 let mixer = null
  gltfLoader.load(
-    '/models/raspberryblend.glb',
+    '/models/raspberryV1.glb',
     (glb) =>
     {
        const berryMesh = glb.scene
         berryMesh.children.map(item=>{
+            if(item.name === "Leaves"){
             item.material = new THREE.MeshMatcapMaterial()
-            item.material.matcap = mtcTexture
+            item.material.matcap = leavesTexture}
+            else if(item.name === "Berry"){
+            item.children.map(berry=>{
+                berry.material = new THREE.MeshMatcapMaterial()
+                berry.material.matcap = berryTexture 
+            })
+            }
         })
         berryMaker(berryMesh)
     }
 )
+gltfLoader.load( //!!! TODO
+    '/models/raspberryV2.glb',
+    (glb) =>
+    {
+       const berryMesh = glb.scene
+        berryMesh.children.map(item=>{
+            if(item.name === "Leaves"){
+            item.material = new THREE.MeshMatcapMaterial()
+            item.material.matcap = leavesTexture}
+            else if(item.name === "Berry"){
+            item.children.map(berry=>{
+                berry.material = new THREE.MeshMatcapMaterial()
+                berry.material.matcap = berryTexture 
+            })
+            }
+        })
+        berryMaker(berryMesh)
+    }
+)
+
+
 const berryGroup = new THREE.Group();
 let oneBerry = false;
 const berryMaker = (berryMesh) => {
-    for(let i = 0; i<100; i++){
-        oneBerry = new THREE.Mesh();
+    for(let i = 0; i<50; i++){
+        console.log("berryMesh",berryMesh)
+        //oneBerry = new THREE.Mesh();
         oneBerry= berryMesh.clone()
         //oneBerry.rotation.y(180)
         oneBerry.position.x = (Math.random() - 0.5) * 19
@@ -88,9 +119,9 @@ const berryMaker = (berryMesh) => {
         oneBerry.rotation.z = Math.random()
         oneBerry.rotation.y = Math.random()
         //oneBerry.rotate.y=360
-       berryGroup.add(berryMesh, oneBerry)
-        
+       berryGroup.add(oneBerry)
     }
+    console.log("berryGroup", berryGroup)
 }
 
 scene.add(berryGroup)
@@ -172,7 +203,7 @@ const tick = () =>
         mixer.update(deltaTime)
     }
     // Update objects
-    berryGroup.children.map(item=> item.rotation.y = elapsedTime*0.1 )
+   // berryGroup.children.map(item=> item.rotation.y = elapsedTime*0.1 )
 
     // Update controls
     controls.update()
