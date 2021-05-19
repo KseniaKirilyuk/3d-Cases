@@ -10,7 +10,7 @@ import * as dat from 'dat.gui'
  * Base
  */
 // Debug
-const gui = new dat.GUI()
+//const gui = new dat.GUI()
 
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
@@ -22,7 +22,7 @@ scene.background = new THREE.Texture()
 const textureLoader = new THREE.TextureLoader()
 const berryTexture = textureLoader.load('/models/textures/softRed.png');
 const textTexture = textureLoader.load( "/models/textures/chalk.png" );
-const leavesTexture = textureLoader.load( "/models/textures/lightGreen.png" );
+const leavesTexture = textureLoader.load( "/models/textures/green.png" );
 
 //Text
 let text;
@@ -51,8 +51,7 @@ fontLoader.load(
         scene.add(text)
     }
 )
-// const axesHelper = new THREE.AxesHelper( 5 );
-// scene.add( axesHelper );
+
 /**
  * Models
  */
@@ -61,7 +60,6 @@ dracoLoader.setDecoderPath('/draco/')
 
 const gltfLoader = new GLTFLoader()
 gltfLoader.setDRACOLoader(dracoLoader) 
-console.log("DRACO",dracoLoader)
 
 let mixer = null
  gltfLoader.load(
@@ -103,12 +101,10 @@ gltfLoader.load( //!!! TODO
     }
 )
 
-
 const berryGroup = new THREE.Group();
 let oneBerry = false;
 const berryMaker = (berryMesh) => {
     for(let i = 0; i<50; i++){
-        console.log("berryMesh",berryMesh)
         //oneBerry = new THREE.Mesh();
         oneBerry= berryMesh.clone()
         //oneBerry.rotation.y(180)
@@ -121,7 +117,6 @@ const berryMaker = (berryMesh) => {
         //oneBerry.rotate.y=360
        berryGroup.add(oneBerry)
     }
-    console.log("berryGroup", berryGroup)
 }
 
 scene.add(berryGroup)
@@ -174,6 +169,29 @@ const controls = new OrbitControls(camera, canvas)
 controls.target.set(0, 0, 0)
 controls.enableDamping = true
 
+// create an AudioListener and add it to the camera
+//const listener = new THREE.AudioListener();
+//const file = '/sounds/trackk1.wav';
+//camera.add( listener );
+
+// create a global audio source
+// const sound = new THREE.Audio( listener );
+// const fftSize = 128;
+// const format = ( renderer.capabilities.isWebGL2 ) ? THREE.RedFormat : THREE.LuminanceFormat;
+
+// load a sound and set it as the Audio object's buffer
+// const audioLoader = new THREE.AudioLoader();
+// audioLoader.load( file, function( buffer ) {
+// 	sound.setBuffer( buffer );
+// 	sound.setLoop( true );
+// 	sound.setVolume( 0.5 );
+// 	sound.play();
+// });
+
+// const analyser = new THREE.AudioAnalyser( sound, fftSize );
+// const uniforms = {
+//     tAudioData: { value: new THREE.DataTexture( analyser.data, fftSize / 2, 1, format ) }
+//     };
 /**
  * Renderer
  */
@@ -203,8 +221,13 @@ const tick = () =>
         mixer.update(deltaTime)
     }
     // Update objects
-   // berryGroup.children.map(item=> item.rotation.y = elapsedTime*0.1 )
+   berryGroup.children.map(item=> item.rotation.y = elapsedTime*0.5 )
+   //camera.position.x = Math.cos(elapsedTime*0.0002)
+   camera.position.y = Math.sin(elapsedTime)
+   camera.position.z = Math.sin(camera.position.y)+10
+    camera.lookAt(0,0,0)
 
+    
     // Update controls
     controls.update()
 
